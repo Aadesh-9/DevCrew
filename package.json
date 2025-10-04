@@ -1,0 +1,25 @@
+{
+  "name": "full-stack-mern-app",
+  "version": "1.0.0",
+  "description": "a platform where developers can connect",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "node.js",
+    "express.js",
+    "react.js",
+    "MERN",
+    "mongodb"
+  ],
+  "author": "Aadesh Wasamkar",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "mongoose": "^8.19.0"
+  }
+}
