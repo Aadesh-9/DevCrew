@@ -58,13 +58,27 @@ app.delete("/delete", async (req, res) => {
 });
 
 //update user Info
-app.patch("/update", async (req, res) => {
+app.patch("/update/:id", async (req, res) => {
   try {
-    const user = await User.findOneAndUpdate(
-      { email: req.body.email },
-      { email: "sydneysweeny@gmail.com" },
-      { returnDocument: "after" }
+    const userId = req.params.id;
+    const allowedUpdates = ["skills", "password"];
+    const requestedUpdates = Object.keys(req.body);
+    const isValidOperation = requestedUpdates.every((update) =>
+      allowedUpdates.includes(update)
     );
+
+    if (!isValidOperation) {
+      throw new Error("Invalid updates!");
+    }
+    const updates = {};
+    requestedUpdates.forEach((key) => {
+      updates[key] = req.body[key];
+    });
+
+    const user = await User.findByIdAndUpdate({ _id: userId }, updates, {
+      returnDocument: "after",
+      runValidators: true,
+    });
     if (user) {
       res.status(200).send("user updated successfully" + user);
     } else {
@@ -76,11 +90,25 @@ app.patch("/update", async (req, res) => {
 });
 
 //put (replace) user Info
-app.put("/replace", async (req, res) => {
-  const { filter, replacement } = req.body;
+app.put("/replace/:id", async (req, res) => {
   try {
-    const user = await User.findOneAndReplace(filter, replacement, {
+    const userId = req.params.id;
+    const allowedUpdates = ["skills", "password"];
+    const requestedUpdates = Object.keys(req.body);
+    const isValidOperation = requestedUpdates.every((update) =>
+      allowedUpdates.includes(update)
+    );
+
+    if (!isValidOperation) {
+      throw new Error("Invalid updates!");
+    }
+    const updates = {};
+    requestedUpdates.forEach((key) => {
+      updates[key] = req.body[key];
+    });
+    const user = await User.findOneAndReplace({ _id: userId }, updates, {
       returnDocument: "after",
+      runValidators: true,
     });
     if (user) {
       res.status(200).send("user updated successfully" + user);
