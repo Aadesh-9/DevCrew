@@ -43,6 +43,10 @@ app.get("/feed", async (req, res) => {
   }
 });
 
+app.all("/", (req, res) => {
+  res.send("server is running");
+});
+
 connectDB()
   .then(() => {
     console.log("Database connected successfully");
