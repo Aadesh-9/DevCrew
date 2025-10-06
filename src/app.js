@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 const connectDB = require("./config/database");
-const { User } = require("./models/User");
+const User = require("./models/User");
 
 app.use(express.json());
 
@@ -40,6 +40,55 @@ app.get("/feed", async (req, res) => {
     }
   } catch (err) {
     res.status(500).send("something went wrong");
+  }
+});
+
+//delete a user by email
+app.delete("/delete", async (req, res) => {
+  try {
+    const user = await User.deleteOne({ email: req.body.email });
+    if (user.deletedCount === 0) {
+      res.status(500).send("No user found to delete");
+    } else {
+      res.status(200).send("User deleted successfully");
+    }
+  } catch (err) {
+    res.status(500).send("something went wrong" + err.message);
+  }
+});
+
+//update user Info
+app.patch("/update", async (req, res) => {
+  try {
+    const user = await User.findOneAndUpdate(
+      { email: req.body.email },
+      { email: "sydneysweeny@gmail.com" },
+      { returnDocument: "after" }
+    );
+    if (user) {
+      res.status(200).send("user updated successfully" + user);
+    } else {
+      res.status(404).send("No user found to update");
+    }
+  } catch (err) {
+    res.status(500).send("something went wrong" + err.message);
+  }
+});
+
+//put (replace) user Info
+app.put("/replace", async (req, res) => {
+  const { filter, replacement } = req.body;
+  try {
+    const user = await User.findOneAndReplace(filter, replacement, {
+      returnDocument: "after",
+    });
+    if (user) {
+      res.status(200).send("user updated successfully" + user);
+    } else {
+      res.status(404).send("No user found to update");
+    }
+  } catch (err) {
+    res.status(500).send("something went wrong" + err.message);
   }
 });
 
