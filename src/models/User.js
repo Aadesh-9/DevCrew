@@ -7,7 +7,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       minLength: 2,
       maxLength: 30,
-      required: true,
       trim: true,
     },
     lastName: {
@@ -35,19 +34,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true,
       required: true,
-      validate: (val) => {
-        const specialCharcters = /[!@#$%^&*]/;
-        const digits = /\d/;
-        if (
-          val.length < 8 ||
-          !specialCharcters.test(val) ||
-          !digits.test(val)
-        ) {
-          throw new Error(
-            "Password must be at least 8 characters long and include a number and special character"
-          );
-        }
-      },
     },
     gender: {
       type: String,
