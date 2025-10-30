@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 
 const userSchema = new mongoose.Schema(
   {
@@ -17,7 +19,6 @@ const userSchema = new mongoose.Schema(
     age: {
       type: Number,
       min: 18,
-      required: true,
     },
     email: {
       type: String,
@@ -37,7 +38,6 @@ const userSchema = new mongoose.Schema(
     },
     gender: {
       type: String,
-      required: true,
       validate: (value) => {
         if (!["male", "female", "other"].includes(value.toLowerCase())) {
           throw new Error("Gender is not valid");
@@ -55,14 +55,32 @@ const userSchema = new mongoose.Schema(
     },
     skills: {
       type: [String],
-      validate: (val) => {
-        if (val.length < 2) {
-          throw new Error("At least two skills are required");
-        }
-      },
+      // validate: (val) => {
+      //   if (val.length < 2) {
+      //     throw new Error("At least two skills are required");
+      //   }
+      // },
     },
   },
   { timestamps: true }
 );
+
+userSchema.methods.getJWT = async function () {
+  const user = this;
+  const token = await jwt.sign({ _id: user._id }, process.env.JWT_SECRET_KEY, {
+    expiresIn: "7d",
+  });
+  return token;
+};
+
+userSchema.methods.validatePassword = async function (passwordInputByUser) {
+  const user = this;
+  const hashedPassword = user.password;
+  const doesPasswordMatch = await bcrypt.compare(
+    passwordInputByUser,
+    hashedPassword
+  );
+  return doesPasswordMatch;
+};
 
 module.exports = mongoose.model("user", userSchema);

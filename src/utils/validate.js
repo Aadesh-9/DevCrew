@@ -1,9 +1,9 @@
 const validator = require("validator");
 
 const validateSignUpData = (req) => {
-  const { firstName, email, password, gender, skills } = req.body;
+  const { email, password } = req.body;
 
-  if (!firstName || !password || !email || !skills || !gender) {
+  if (!password || !email) {
     throw new Error("Missing required fields");
   }
   if (!validator.isStrongPassword(password)) {

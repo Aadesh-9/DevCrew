@@ -3,9 +3,13 @@ const app = express();
 const connectDB = require("./config/database");
 const User = require("./models/User");
 const { validateSignUpData } = require("./utils/validate");
+const { userAuth } = require("./middlewares/userAuth");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const cookieParser = require("cookie-parser");
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.post("/signup", async (req, res) => {
   try {
@@ -23,6 +27,16 @@ app.post("/signup", async (req, res) => {
       skills,
     });
     await user.save();
+    const token = await jwt.sign(
+      { _id: user._id },
+      process.env.JWT_SECRET_KEY,
+      {
+        expiresIn: "7d",
+      }
+    );
+    res.cookie("token", token, {
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
     res.send("Data added successfully");
   } catch (err) {
     res.status(500).send("Error: " + err.message);
@@ -36,13 +50,27 @@ app.post("/login", async (req, res) => {
     if (!user) {
       throw new Error("Invalid credentials");
     }
-    if (!(await bcrypt.compare(password, user.password))) {
-      throw new Error("Invalid credentials");
+    const doesPasswordMatch = await user.validatePassword(password);
+    if (doesPasswordMatch) {
+      const token = await user.getJWT();
+      res.cookie("token", token, {
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      });
+      res.status(200).send("login successful");
     } else {
-      res.status(200).send("Login successful");
+      throw new Error("Invalid credentials");
     }
   } catch (err) {
     res.status(500).send("Error: " + err.message);
+  }
+});
+
+app.get("/profile", userAuth, async (req, res) => {
+  try {
+    const user = req.user;
+    res.send(user);
+  } catch {
+    res.status(400).send(err.message);
   }
 });
 
@@ -61,7 +89,7 @@ app.get("/userData", async (req, res) => {
 });
 
 //get all users
-app.get("/feed", async (req, res) => {
+app.get("/feed", userAuth, async (req, res) => {
   try {
     const users = await User.find();
     if (users.length === 0) {
